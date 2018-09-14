@@ -1,0 +1,67 @@
+ <!DOCTYPE html>
+<html>
+  <head>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  </head>
+  <body>
+    <video src="" id='video' style='width:680px;height:320px' autoplay="true"></video>
+    <canvas style='display:none' id="preview"></canvas>
+    <div id="logger"></div>
+
+
+    <script>
+      var canvas = document.getElementById("preview");
+      var context = canvas.getContext("2d")
+
+      canvas.width = 800;
+      canvas.height = 600;
+
+      context.width = canvas.width;
+      context.height = canvas.height;
+
+      var video = document.getElementById("video");
+
+      var socket = io('/room1');
+      
+      function logger(msg) {
+        $("#logger").text(msg)
+      }
+
+      function loadCam(stream) {
+        video.src = window.URL.createObjectURL(stream)
+        logger('Camera already done')
+      }
+
+      function loadFail() {
+        logger('error on connect cam, please retry!')
+      }
+      function viewVideo(video) {
+        socket.emit('call',canvas.toDataURL('image/webp'))
+        context.drawImage(video, 0,0, context.width, context.height);
+        console.log('emit')
+      }
+
+      $(function(){
+        
+        navigator.getUserMedia = (
+          navigator.getUserMedia || 
+          navigator.webkitGetUserMedia || 
+          navigator.moz.GetUserMedia ||
+          navigator.msgGetUserMedia );
+
+           if ( navigator.getUserMedia )
+           {
+             navigator.getUserMedia({video:true}, loadCam, loadFail)
+           }
+
+           setInterval(function() {
+             viewVideo(video,context)
+           },70)
+
+      })()
+    </script>
+
+  </body>
+ 
+</html>
